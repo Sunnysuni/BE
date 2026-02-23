@@ -1,0 +1,12 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        name: STORE_SESSION
+
+app:
+  security:
+    store:
+      username: buyer
+      password: buyer1234

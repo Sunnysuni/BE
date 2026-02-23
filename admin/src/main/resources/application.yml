@@ -1,0 +1,12 @@
+server:
+  port: 8081
+  servlet:
+    session:
+      cookie:
+        name: ADMIN_SESSION
+
+app:
+  security:
+    admin:
+      username: admin
+      password: admin1234
