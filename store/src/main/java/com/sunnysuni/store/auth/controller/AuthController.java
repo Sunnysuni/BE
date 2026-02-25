@@ -1,5 +1,6 @@
 package com.sunnysuni.store.auth.controller;
 
+import com.sunnysuni.common.dto.ApiResponse;
 import com.sunnysuni.store.auth.dto.LoginRequest;
 import com.sunnysuni.store.auth.dto.SignupRequest;
 import com.sunnysuni.store.auth.service.AuthService;
@@ -22,23 +23,24 @@ public class AuthController {
   }
 
   @PostMapping("/signup")
-  public ResponseEntity<Void> signup(@Valid @RequestBody SignupRequest request) {
+  public ResponseEntity<ApiResponse<Void>> signup(@Valid @RequestBody SignupRequest request) {
     authService.signup(request);
-    return ResponseEntity.status(HttpStatus.CREATED).build();
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(ApiResponse.success("회원가입이 완료되었습니다.", null));
   }
 
   @PostMapping("/login")
-  public ResponseEntity<Void> login(
+  public ResponseEntity<ApiResponse<Void>> login(
       @Valid @RequestBody LoginRequest request,
       HttpServletRequest httpRequest
   ) {
     authService.login(request, httpRequest);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(ApiResponse.success("로그인이 완료되었습니다.", null));
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(HttpServletRequest request) {
+  public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
     authService.logout(request);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(ApiResponse.success("로그아웃이 완료되었습니다.", null));
   }
 }
