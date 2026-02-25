@@ -23,7 +23,7 @@ class AuthControllerIntegrationTest {
   private MockMvc mockMvc;
 
   @Test
-  @DisplayName("로그인 성공 시 200 OK와 세션 인증 정보를 반환합니다")
+  @DisplayName("로그인 성공 시 200 OK를 반환하고 세션에 인증 정보를 저장합니다.")
   void loginSuccessReturnsOkAndStoresSecurityContextInSession() throws Exception {
     // Given
     String requestBody = """
@@ -49,7 +49,7 @@ class AuthControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("로그인 실패 시 401 Unauthorized를 반환합니다")
+  @DisplayName("로그인 실패 시 401 Unauthorized를 반환합니다.")
   void loginFailureReturnsUnauthorized() throws Exception {
     // Given
     String requestBody = """
@@ -68,8 +68,8 @@ class AuthControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("로그아웃 성공 시 204 No Content와 세션 무효화를 반환합니다")
-  void logoutSuccessReturnsNoContentAndInvalidatesSession() throws Exception {
+  @DisplayName("로그아웃 성공 시 200 OK를 반환하고 세션을 무효화합니다.")
+  void logoutSuccessReturnsOkAndInvalidatesSession() throws Exception {
     // Given
     String loginRequestBody = """
         {
@@ -93,7 +93,7 @@ class AuthControllerIntegrationTest {
             .with(csrf())
             .session(session))
         // Then
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk());
 
     assertThat(session.isInvalid()).isTrue();
   }

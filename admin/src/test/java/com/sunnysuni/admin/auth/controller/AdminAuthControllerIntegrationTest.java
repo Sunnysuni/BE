@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -23,7 +24,7 @@ class AdminAuthControllerIntegrationTest {
   private MockMvc mockMvc;
 
   @Test
-  @DisplayName("관리자 로그인 성공 시 200 OK와 세션 인증 정보를 반환합니다")
+  @DisplayName("관리자 로그인 성공 시 200 OK와 공통 응답을 반환하고 세션에 인증 정보를 저장합니다.")
   void loginSuccessReturnsOkAndStoresSecurityContextInSession() throws Exception {
     // Given
     String requestBody = """
@@ -40,6 +41,8 @@ class AdminAuthControllerIntegrationTest {
             .content(requestBody))
         // Then
         .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.message").value("로그인이 완료되었습니다."))
         .andReturn();
 
     assertThat(result.getRequest().getSession(false)).isNotNull();
@@ -49,7 +52,7 @@ class AdminAuthControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("관리자 로그인 실패 시 401 Unauthorized를 반환합니다")
+  @DisplayName("관리자 로그인 실패 시 401 Unauthorized와 공통 에러 응답을 반환합니다.")
   void loginFailureReturnsUnauthorized() throws Exception {
     // Given
     String requestBody = """
@@ -64,12 +67,14 @@ class AdminAuthControllerIntegrationTest {
             .with(csrf())
             .contentType(MediaType.APPLICATION_JSON)
             .content(requestBody))
-        .andExpect(status().isUnauthorized());
+        .andExpect(status().isUnauthorized())
+        .andExpect(jsonPath("$.success").value(false))
+        .andExpect(jsonPath("$.message").value("아이디 또는 비밀번호가 올바르지 않습니다."));
   }
 
   @Test
-  @DisplayName("관리자 로그아웃 성공 시 204 No Content와 세션 무효화를 반환합니다")
-  void logoutSuccessReturnsNoContentAndInvalidatesSession() throws Exception {
+  @DisplayName("관리자 로그아웃 성공 시 200 OK와 공통 응답을 반환하고 세션을 무효화합니다.")
+  void logoutSuccessReturnsOkAndInvalidatesSession() throws Exception {
     // Given
     String loginRequestBody = """
         {
@@ -93,7 +98,9 @@ class AdminAuthControllerIntegrationTest {
             .with(csrf())
             .session(session))
         // Then
-        .andExpect(status().isNoContent());
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.message").value("로그아웃이 완료되었습니다."));
 
     assertThat(session.isInvalid()).isTrue();
   }

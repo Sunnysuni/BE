@@ -2,6 +2,7 @@ package com.sunnysuni.admin.auth.controller;
 
 import com.sunnysuni.admin.auth.dto.LoginRequest;
 import com.sunnysuni.admin.auth.service.AdminAuthService;
+import com.sunnysuni.common.dto.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -20,17 +21,17 @@ public class AdminAuthController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<Void> login(
+  public ResponseEntity<ApiResponse<Void>> login(
       @Valid @RequestBody LoginRequest request,
       HttpServletRequest httpRequest
   ) {
     adminAuthService.login(request, httpRequest);
-    return ResponseEntity.ok().build();
+    return ResponseEntity.ok(ApiResponse.success("로그인이 완료되었습니다.", null));
   }
 
   @PostMapping("/logout")
-  public ResponseEntity<Void> logout(HttpServletRequest request) {
+  public ResponseEntity<ApiResponse<Void>> logout(HttpServletRequest request) {
     adminAuthService.logout(request);
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(ApiResponse.success("로그아웃이 완료되었습니다.", null));
   }
 }
