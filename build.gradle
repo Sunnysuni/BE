@@ -5,6 +5,7 @@ plugins {
 }
 
 import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.compile.JavaCompile
 
 allprojects {
   group = 'com.sunnysuni'
@@ -36,9 +37,14 @@ subprojects {
     testCompileOnly 'org.projectlombok:lombok:1.18.38'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.38'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
   }
 
   tasks.named('test', Test) {
     useJUnitPlatform()
+  }
+
+  tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
   }
 }
