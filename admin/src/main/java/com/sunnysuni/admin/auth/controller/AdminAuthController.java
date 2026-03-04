@@ -1,8 +1,8 @@
 package com.sunnysuni.admin.auth.controller;
 
-import com.sunnysuni.admin.auth.dto.LoginRequest;
 import com.sunnysuni.admin.auth.service.AdminAuthService;
 import com.sunnysuni.common.dto.ApiResponse;
+import com.sunnysuni.common.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

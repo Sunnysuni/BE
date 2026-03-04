@@ -1,4 +1,4 @@
-package com.sunnysuni.store.auth.dto;
+package com.sunnysuni.common.dto;
 
 import jakarta.validation.constraints.NotBlank;
 

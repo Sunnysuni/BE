@@ -1,6 +1,6 @@
 package com.sunnysuni.store.auth.service;
 
-import com.sunnysuni.store.auth.dto.LoginRequest;
+import com.sunnysuni.common.dto.LoginRequest;
 import com.sunnysuni.store.auth.dto.SignupRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;

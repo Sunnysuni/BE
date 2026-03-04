@@ -1,6 +1,6 @@
 package com.sunnysuni.admin.auth.service;
 
-import com.sunnysuni.admin.auth.dto.LoginRequest;
+import com.sunnysuni.common.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.authentication.AuthenticationManager;

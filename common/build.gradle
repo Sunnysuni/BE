@@ -11,5 +11,6 @@ dependencyManagement {
 
 dependencies {
   api 'org.springframework.boot:spring-boot-starter-data-jpa'
+  api 'jakarta.validation:jakarta.validation-api'
   runtimeOnly 'com.mysql:mysql-connector-j'
 }
