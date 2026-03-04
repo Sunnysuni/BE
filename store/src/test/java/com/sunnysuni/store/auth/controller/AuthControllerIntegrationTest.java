@@ -70,6 +70,44 @@ class AuthControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("로그인 시 username이 비어 있으면 400 Bad Request를 반환합니다.")
+  void loginReturnsBadRequestWhenUsernameBlank() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "username": "",
+          "password": "buyer1234"
+        }
+        """;
+
+    // When & Then
+    mockMvc.perform(post("/api/v1/auth/login")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  @DisplayName("로그인 시 password가 비어 있으면 400 Bad Request를 반환합니다.")
+  void loginReturnsBadRequestWhenPasswordBlank() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "username": "buyer",
+          "password": ""
+        }
+        """;
+
+    // When & Then
+    mockMvc.perform(post("/api/v1/auth/login")
+            .with(csrf())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest());
+  }
+
+  @Test
   @DisplayName("로그아웃 성공 시 200 OK를 반환하고 세션을 무효화합니다.")
   void logoutSuccessReturnsOkAndInvalidatesSession() throws Exception {
     // Given
