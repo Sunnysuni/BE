@@ -2,9 +2,13 @@ package com.sunnysuni.common.repository;
 
 import com.sunnysuni.common.entity.Product;
 import com.sunnysuni.common.enums.ProductStatus;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * TODO(상품-카테고리 연동):
@@ -24,4 +28,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
       ProductStatus status,
       Pageable pageable
   );
+
+  @EntityGraph(attributePaths = "options")
+  Optional<Product> findWithOptionsById(Long id);
+
+  @Query("select distinct p from Product p left join fetch p.options order by p.id desc")
+  List<Product> findAllByOrderByIdDesc();
 }
