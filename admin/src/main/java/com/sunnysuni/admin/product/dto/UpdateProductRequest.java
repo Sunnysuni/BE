@@ -1,10 +1,12 @@
 package com.sunnysuni.admin.product.dto;
 
 import com.sunnysuni.common.enums.ProductStatus;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public record UpdateProductRequest(
     @NotBlank(message = "상품명은 필수입니다.")
@@ -27,6 +29,9 @@ public record UpdateProductRequest(
     Boolean isSale,
 
     @NotNull(message = "상품 상태는 필수입니다.")
-    ProductStatus status
+    ProductStatus status,
+
+    @Valid
+    List<@NotNull(message = "옵션 항목은 null일 수 없습니다.") ProductOptionRequest> options
 ) {
 }

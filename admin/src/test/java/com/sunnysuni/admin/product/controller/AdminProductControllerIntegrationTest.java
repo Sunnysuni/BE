@@ -38,11 +38,11 @@ class AdminProductControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("관리자 상품 목록 조회 시 200 OK와 공통 응답을 반환합니다.")
+  @DisplayName("Admin product list returns common response")
   void getProductsReturnsOk() throws Exception {
     // Given
-    productRepository.save(Product.create("목록 상품1", "설명", 10000, null, true, false, ProductStatus.ACTIVE));
-    productRepository.save(Product.create("목록 상품2", "설명", 11000, null, false, false, ProductStatus.HIDDEN));
+    productRepository.save(Product.create("list-product-1", "desc", 10000, null, true, false, ProductStatus.ACTIVE));
+    productRepository.save(Product.create("list-product-2", "desc", 11000, null, false, false, ProductStatus.HIDDEN));
 
     // When & Then
     mockMvc.perform(get("/api/v1/products")
@@ -53,12 +53,12 @@ class AdminProductControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("관리자 상품 단건 조회 시 200 OK와 공통 응답을 반환합니다.")
+  @DisplayName("Admin product detail returns common response")
   void getProductReturnsOk() throws Exception {
     // Given
     Product saved = productRepository.save(Product.create(
-        "단건 상품",
-        "설명",
+        "single-product",
+        "desc",
         10000,
         null,
         true,
@@ -72,17 +72,17 @@ class AdminProductControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
         .andExpect(jsonPath("$.data.id").value(saved.getId()))
-        .andExpect(jsonPath("$.data.name").value("단건 상품"));
+        .andExpect(jsonPath("$.data.name").value("single-product"));
   }
 
   @Test
-  @DisplayName("관리자 상품 등록 시 200 OK와 공통 응답을 반환합니다.")
+  @DisplayName("Admin product create returns common response")
   void createProductReturnsOk() throws Exception {
     // Given
     String requestBody = """
         {
-          "name": "테스트 상품",
-          "description": "설명",
+          "name": "test-product",
+          "description": "desc",
           "price": 10000,
           "salePrice": 9000,
           "isNew": true,
@@ -99,16 +99,16 @@ class AdminProductControllerIntegrationTest {
             .content(requestBody))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.data.name").value("테스트 상품"));
+        .andExpect(jsonPath("$.data.name").value("test-product"));
   }
 
   @Test
-  @DisplayName("관리자 상품 수정 시 200 OK와 수정된 데이터를 반환합니다.")
+  @DisplayName("Admin product update returns updated data")
   void updateProductReturnsUpdatedData() throws Exception {
     // Given
     Product saved = productRepository.save(Product.create(
-        "기존 상품",
-        "기존 설명",
+        "before-update",
+        "before-desc",
         12000,
         null,
         false,
@@ -118,8 +118,8 @@ class AdminProductControllerIntegrationTest {
 
     String requestBody = """
         {
-          "name": "수정 상품",
-          "description": "수정 설명",
+          "name": "after-update",
+          "description": "after-desc",
           "price": 15000,
           "salePrice": 13000,
           "isNew": true,
@@ -136,16 +136,16 @@ class AdminProductControllerIntegrationTest {
             .content(requestBody))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.data.name").value("수정 상품"));
+        .andExpect(jsonPath("$.data.name").value("after-update"));
   }
 
   @Test
-  @DisplayName("관리자 상품 삭제 시 200 OK를 반환하고 상품이 삭제됩니다.")
+  @DisplayName("Admin product delete returns ok")
   void deleteProductReturnsOk() throws Exception {
     // Given
     Product saved = productRepository.save(Product.create(
-        "삭제 상품",
-        "설명",
+        "to-delete",
+        "desc",
         12000,
         null,
         false,
@@ -159,5 +159,160 @@ class AdminProductControllerIntegrationTest {
             .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true));
+  }
+
+  @Test
+  @DisplayName("All zero stock options become SOLD_OUT")
+  void createProductWithSoldOutOptionsReturnsSoldOut() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "name": "sold-out-option-product",
+          "description": "desc",
+          "price": 10000,
+          "salePrice": 9000,
+          "isNew": false,
+          "isSale": false,
+          "status": "ACTIVE",
+          "options": [
+            { "size": "M", "color": "ivory", "stock": 0, "additionalPrice": 0 },
+            { "size": "L", "color": "ivory", "stock": 0, "additionalPrice": 1000 }
+          ]
+        }
+        """;
+
+    // When & Then
+    mockMvc.perform(post("/api/v1/products")
+            .with(csrf())
+            .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.status").value("SOLD_OUT"))
+        .andExpect(jsonPath("$.data.options.length()").value(2));
+  }
+
+  @Test
+  @DisplayName("Any positive stock option keeps ACTIVE")
+  void createProductWithAvailableOptionsReturnsActive() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "name": "active-option-product",
+          "description": "desc",
+          "price": 10000,
+          "salePrice": null,
+          "isNew": false,
+          "isSale": false,
+          "status": "SOLD_OUT",
+          "options": [
+            { "size": "M", "color": "black", "stock": 0, "additionalPrice": 0 },
+            { "size": "L", "color": "black", "stock": 2, "additionalPrice": 1000 }
+          ]
+        }
+        """;
+
+    // When & Then
+    mockMvc.perform(post("/api/v1/products")
+            .with(csrf())
+            .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.status").value("ACTIVE"))
+        .andExpect(jsonPath("$.data.options.length()").value(2));
+  }
+
+  @Test
+  @DisplayName("Negative option stock returns bad request")
+  void createProductReturnsBadRequestWhenOptionStockNegative() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "name": "invalid-option-stock",
+          "description": "desc",
+          "price": 10000,
+          "salePrice": null,
+          "isNew": false,
+          "isSale": false,
+          "status": "ACTIVE",
+          "options": [
+            { "size": "M", "color": "black", "stock": -1, "additionalPrice": 0 }
+          ]
+        }
+        """;
+
+    // When & Then
+    mockMvc.perform(post("/api/v1/products")
+            .with(csrf())
+            .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false));
+  }
+
+  @Test
+  @DisplayName("Null option item returns bad request")
+  void createProductReturnsBadRequestWhenOptionsContainNull() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "name": "null-option-item",
+          "description": "desc",
+          "price": 10000,
+          "salePrice": null,
+          "isNew": false,
+          "isSale": false,
+          "status": "ACTIVE",
+          "options": [null]
+        }
+        """;
+
+    // When & Then
+    mockMvc.perform(post("/api/v1/products")
+            .with(csrf())
+            .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.success").value(false));
+  }
+
+  @Test
+  @DisplayName("Admin product list does not duplicate products when options exist")
+  void getProductsDoesNotDuplicateWhenProductHasMultipleOptions() throws Exception {
+    // Given
+    String requestBody = """
+        {
+          "name": "multi-option-product",
+          "description": "desc",
+          "price": 10000,
+          "salePrice": null,
+          "isNew": false,
+          "isSale": false,
+          "status": "ACTIVE",
+          "options": [
+            { "size": "M", "color": "black", "stock": 3, "additionalPrice": 0 },
+            { "size": "L", "color": "black", "stock": 3, "additionalPrice": 1000 }
+          ]
+        }
+        """;
+    mockMvc.perform(post("/api/v1/products")
+            .with(csrf())
+            .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN"))
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(requestBody))
+        .andExpect(status().isOk());
+
+    // When & Then
+    mockMvc.perform(get("/api/v1/products")
+            .with(SecurityMockMvcRequestPostProcessors.user("admin").roles("ADMIN")))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.length()").value(1))
+        .andExpect(jsonPath("$.data[0].name").value("multi-option-product"));
   }
 }

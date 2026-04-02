@@ -1,6 +1,7 @@
 package com.sunnysuni.store.product.controller;
 
 import com.sunnysuni.common.entity.Product;
+import com.sunnysuni.common.entity.ProductOption;
 import com.sunnysuni.common.enums.ProductStatus;
 import com.sunnysuni.common.repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,19 +62,37 @@ class ProductControllerIntegrationTest {
   }
 
   @Test
-  @DisplayName("상품 상세 조회 시 ACTIVE 상품은 200 OK와 공통 응답을 반환합니다.")
-  void getProductReturnsOkWhenActive() throws Exception {
+  @DisplayName("상품 상세 조회 시 옵션과 재고 정보를 함께 반환합니다.")
+  void getProductReturnsOptionsWithStock() throws Exception {
     // Given
-    Product active = productRepository.save(
-        Product.create("상세 상품", "상세 설명", 12000, 10000, true, true, ProductStatus.ACTIVE)
+    Product active = Product.create("상세 상품", "상세 설명", 12000, 10000, true, true, ProductStatus.ACTIVE);
+    active.addOption(ProductOption.create("M", "ivory", 3, 0));
+    Product saved = productRepository.save(active);
+
+    // When & Then
+    mockMvc.perform(get("/api/v1/products/{id}", saved.getId()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.success").value(true))
+        .andExpect(jsonPath("$.data.id").value(saved.getId()))
+        .andExpect(jsonPath("$.data.name").value("상세 상품"))
+        .andExpect(jsonPath("$.data.options.length()").value(1))
+        .andExpect(jsonPath("$.data.options[0].size").value("M"))
+        .andExpect(jsonPath("$.data.options[0].stock").value(3));
+  }
+
+  @Test
+  @DisplayName("상품 상세 조회 시 옵션이 없으면 빈 배열을 반환합니다.")
+  void getProductReturnsEmptyOptionsWhenNoOption() throws Exception {
+    // Given
+    Product saved = productRepository.save(
+        Product.create("옵션 없는 상품", "설명", 9000, null, false, false, ProductStatus.ACTIVE)
     );
 
     // When & Then
-    mockMvc.perform(get("/api/v1/products/{id}", active.getId()))
+    mockMvc.perform(get("/api/v1/products/{id}", saved.getId()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.success").value(true))
-        .andExpect(jsonPath("$.data.id").value(active.getId()))
-        .andExpect(jsonPath("$.data.name").value("상세 상품"));
+        .andExpect(jsonPath("$.data.options.length()").value(0));
   }
 
   @Test

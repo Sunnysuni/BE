@@ -1,11 +1,16 @@
 package com.sunnysuni.common.entity;
 
 import com.sunnysuni.common.enums.ProductStatus;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -39,6 +44,9 @@ public class Product extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
   private ProductStatus status;
+
+  @OneToMany(mappedBy = "product", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+  private final List<ProductOption> options = new ArrayList<>();
 
   private Product(
       String name,
@@ -86,5 +94,18 @@ public class Product extends BaseEntity {
     this.isNew = isNew;
     this.isSale = isSale;
     this.status = status;
+  }
+
+  public void replaceOptions(List<ProductOption> productOptions) {
+    this.options.clear();
+    if (productOptions == null || productOptions.isEmpty()) {
+      return;
+    }
+    productOptions.forEach(this::addOption);
+  }
+
+  public void addOption(ProductOption option) {
+    option.assignProduct(this);
+    this.options.add(option);
   }
 }

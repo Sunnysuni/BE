@@ -1,10 +1,13 @@
 package com.sunnysuni.store.product.service;
 
 import com.sunnysuni.common.entity.Product;
+import com.sunnysuni.common.entity.ProductOption;
 import com.sunnysuni.common.enums.ProductStatus;
 import com.sunnysuni.common.exception.EntityNotFoundException;
 import com.sunnysuni.common.repository.ProductRepository;
 import com.sunnysuni.store.product.dto.ProductSummaryResponse;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,9 +19,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-
-import java.util.List;
-import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -39,7 +39,7 @@ class ProductServiceTest {
   void getProductThrowsWhenStatusIsNotActive() {
     // Given
     Product hidden = Product.create("숨김", "설명", 10000, null, false, false, ProductStatus.HIDDEN);
-    when(productRepository.findById(1L)).thenReturn(Optional.of(hidden));
+    when(productRepository.findWithOptionsById(1L)).thenReturn(Optional.of(hidden));
 
     // When & Then
     assertThatThrownBy(() -> productService.getProduct(1L))
@@ -50,11 +50,28 @@ class ProductServiceTest {
   @DisplayName("상품 상세 조회는 데이터가 없으면 EntityNotFoundException을 발생시킵니다.")
   void getProductThrowsWhenNotFound() {
     // Given
-    when(productRepository.findById(99L)).thenReturn(Optional.empty());
+    when(productRepository.findWithOptionsById(99L)).thenReturn(Optional.empty());
 
     // When & Then
     assertThatThrownBy(() -> productService.getProduct(99L))
         .isInstanceOf(EntityNotFoundException.class);
+  }
+
+  @Test
+  @DisplayName("상품 상세 조회는 옵션 정보를 함께 반환합니다.")
+  void getProductReturnsOptions() {
+    // Given
+    Product product = Product.create("티셔츠", "설명", 10000, null, true, false, ProductStatus.ACTIVE);
+    product.addOption(ProductOption.create("M", "ivory", 5, 0));
+    when(productRepository.findWithOptionsById(1L)).thenReturn(Optional.of(product));
+
+    // When
+    var result = productService.getProduct(1L);
+
+    // Then
+    assertThat(result.options()).hasSize(1);
+    assertThat(result.options().get(0).size()).isEqualTo("M");
+    assertThat(result.options().get(0).stock()).isEqualTo(5);
   }
 
   @Test

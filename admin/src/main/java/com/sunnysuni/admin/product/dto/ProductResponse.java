@@ -1,8 +1,10 @@
 package com.sunnysuni.admin.product.dto;
 
+import com.sunnysuni.common.dto.ProductOptionResponse;
 import com.sunnysuni.common.entity.Product;
 import com.sunnysuni.common.enums.ProductStatus;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ProductResponse(
     Long id,
@@ -13,6 +15,7 @@ public record ProductResponse(
     Boolean isNew,
     Boolean isSale,
     ProductStatus status,
+    List<ProductOptionResponse> options,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {
@@ -26,6 +29,7 @@ public record ProductResponse(
         product.getIsNew(),
         product.getIsSale(),
         product.getStatus(),
+        product.getOptions().stream().map(ProductOptionResponse::from).toList(),
         product.getCreatedAt(),
         product.getUpdatedAt()
     );

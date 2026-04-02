@@ -25,7 +25,7 @@ public class ProductService {
   }
 
   public ProductDetailResponse getProduct(Long productId) {
-    return ProductDetailResponse.from(findActiveProductById(productId));
+    return ProductDetailResponse.from(findActiveProductWithOptionsById(productId));
   }
 
   public Page<ProductSummaryResponse> getNewProducts(Pageable pageable) {
@@ -42,8 +42,8 @@ public class ProductService {
     );
   }
 
-  private Product findActiveProductById(Long productId) {
-    return productRepository.findById(productId)
+  private Product findActiveProductWithOptionsById(Long productId) {
+    return productRepository.findWithOptionsById(productId)
         .filter(found -> found.getStatus() == ProductStatus.ACTIVE)
         .orElseThrow(() -> new EntityNotFoundException("상품", productId));
   }
